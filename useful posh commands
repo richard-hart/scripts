@@ -1,0 +1,118 @@
+runas /user:contoso\administrator dsac
+
+wbadmin delete systemstatebackup –deleteOldest
+
+Deploy AD forests and domains:
+Get-Command -Module ADDSDeployment
+Get-WindowsFeature ad-domain-services
+Add-WindowsFeature ad-domain-services
+
+Install-ADDSForest -DomainName test.local -DomainMode Win2012R2 -ForestMode Win2012R2 -Confirm:$false -InstallDns -SafeModeAdministratorPassword (ConvertTo-SecureString -AsPlainText "p@ssw0rd" -Force)
+Install-ADDSDomainController -DomainName test.local -Confirm:$false -InstallDns -SafeModeAdministratorPassword (ConvertTo-SecureString -AsPlainText "p@ssw0rd" -Force) -RemoveApplicationPartitions -RemoveDnsDelegation
+Uninstall-ADDSDomainController -LocalAdministratorPassword (ConvertTo-SecureString -AsPlainText "p@ssw0rd" -Force) -Confirm:$false
+
+C:\Windows\debug\dcpromo.log
+All the events regarding the creation and removal of Active Directory, SYSVOL trees and the installation, modification and removal of key services
+C:\Windows\debug\dcpromoui.log
+All the events from a graphical interface perspective
+
+
+Get-RootSDE
+Get-addomain
+Get-adforest
+get-addomaincontroller
+
+
+Install-WindowsFeature RSAT-ADDS
+
+
+Connect to remote machine via PowerShell:
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 192.68.0.21 -Concatenate
+Enter-PSSession -ComputerName 192.68.0.21 -Credential Administrator
+Enter-PSSession -computername nanoall
+
+
+Add NanoServer to the domain:
+djoin.exe /provision /domain TEST /machine NANOSERVER5 /savefile .\filename
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 192.168.100.20 -Concatenate
+Enter-PSSession -ComputerName 192.168.100.20 -Credential Administrator
+djoin /requestodj /loadfile c:\nanoserver05 /windowspath c:\windows /localos
+
+
+Manage packages on NanoServer:
+Install-PackageProvider NanoServerPackage
+Find-PackageProvider -name *
+Install-NanoServerPackage -name Microsoft-NanoServer-Compute-Package -culture en-us
+
+
+Configure NTP on NanoServer:
+Stop-Service w32time
+w32tm /config /manualpeerlist:pool.ntp.org /syncfromflags:MANUAL
+w32tm /config /syncfromflags:domhier /update
+w32tm /config /reliable:yes
+Start-Service w32time
+W32tm /config /update
+w32tm /query /configuration
+w32tm /resync
+W32tm /monitor
+
+
+Disable NanoServer firewall:
+netsh advfirewall set allprofiles state off
+netsh advfirewall set allprofiles state on
+
+
+Change timezone via PowerShell:
+tzutil.exe /g
+Tzutil.exe /I
+tzutil.exe /s "AUS Eastern Standard Time"
+
+
+Install DNS on NanoServer:
+Install-packageprovider nanoserverpackage
+Find-NanoServerPackage -Name *
+Install-NanoServerPackage Microsoft-NanoServer-DNS-Package -Culture en-us
+Enable-WindowsOptionalFeature -Online -FeatureName DNS-Server-Full-Role
+import-module DNSServer
+Get-Command -Module DNSServer
+
+
+Downgrade AD functional level:
+import-module activedirectory
+Get-ADForest | Format-Table Name , ForestMode, domainmode -AutoSize
+Set-ADForestMode –Identity "test.local" –ForestMode Windows2008r2Forest
+Set-ADDomainMode –Identity "test.local" –DomainMode Windows2008r2Domain
+Get-ADForest | Format-Table Name , ForestMode, domainmode -AutoSize
+
+
+Rename Server 2012 R2 Domain Controller via PowerShell:
+Rename-Computer -computername CURRENTNAME.LOCAL -NewName NEWDCNAME.LOCAL
+Once completed, restart the DC
+
+
+Move Active Directory Database Windows Server 2012:
+First Stop Active Directory Services service
+ntdsutil
+activate instance ntds
+Files
+Type the new location of the database: C:\NTDS
+Restart the Active Directory Services and restart the sever
+
+
+Check Where The FSMO roles are located:
+netdom query fsmo
+
+
+Seize FSMO Roles:
+ntdsutil
+Roles
+Connections
+Connect to server SERVERNAME.DOMAIN
+seize pdc
+seize rid master
+seize infrastructure master
+seize schema master
+seize domain naming master
+
+Or using this command: Move-ADDirectoryServerOperationMasterRole -identity "DC01" -OperationMasterRole 0,1,2,3,4
+The identity is the server you want to transfer these roles to, and the 0-4 numeric represents each role to move
