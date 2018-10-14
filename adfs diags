@@ -1,0 +1,54 @@
+dir Cert:\LocalMachine\AdfsTrustedDevices | format-list * | Out-file "PS-Certs-LocalMachine-AdfsTrustedDevices.txt"
+$proxcfg = 'copy %WINDIR%\ADFS\Config\Microsoft.IdentityServer.ProxyService.exe.config %COMPUTERNAME%-Microsoft.IdentityServer.ProxyService.exe.config'
+cmd.exe /c $proxcfg
+
+
+# ADFS 2012 R2 or ADFS 2016
+		Get-WebApplicationProxyApplication | format-list * | Out-file "Get-WebApplicationProxyApplication.txt"
+		Get-WebApplicationProxyAvailableADFSRelyingParty | format-list * | Out-file "Get-WebApplicationProxyAvailableADFSRelyingParty.txt"
+		Get-WebApplicationProxyConfiguration | format-list * | Out-file "Get-WebApplicationProxyConfiguration.txt"
+		Get-WebApplicationProxyHealth | format-list * | Out-file "Get-WebApplicationProxyHealth.txt"
+		Get-WebApplicationProxySslCertificate | format-list * | Out-file "Get-WebApplicationProxySslCertificate.txt"
+
+# Common ADFS commands to all versions
+	    Get-AdfsAttributeStore | format-list * | Out-file "Get-AdfsAttributeStore.txt"
+	    Get-AdfsCertificate | format-list * | Out-file "Get-AdfsCertificate.txt"
+	    Get-AdfsClaimDescription | format-list * | Out-file "Get-AdfsClaimDescription.txt"
+	    Get-AdfsClaimsProviderTrust | format-list * | Out-file "Get-AdfsClaimsProviderTrust.txt"
+	    Get-AdfsEndpoint | format-list * | Out-file "Get-AdfsEndpoint.txt"
+	    Get-AdfsProperties | format-list * | Out-file "Get-AdfsProperties.txt"
+	    Get-AdfsRelyingPartyTrust | format-list * | Out-file "Get-AdfsRelyingPartyTrust.txt"
+	    Get-AdfsSyncProperties | format-list * | Out-file "Get-AdfsSyncProperties.txt"
+
+# ADFS 2016 Only
+		Get-AdfsAccessControlPolicy | format-list * | Out-file "Get-AdfsAccessControlPolicy.txt"
+		Get-AdfsApplicationGroup | format-list * | Out-file "Get-AdfsApplicationGroup.txt"
+		Get-AdfsApplicationPermission | format-list * | Out-file "Get-AdfsApplicationPermission.txt"
+		Get-AdfsAzureMfaConfigured | format-list * | Out-file "Get-AdfsAzureMfaConfigured.txt"
+		Get-AdfsCertificateAuthority | format-list * | Out-file "Get-AdfsCertificateAuthority.txt"
+		Get-AdfsClaimDescription | format-list * | Out-file "Get-AdfsClaimDescription.txt"
+		Get-AdfsClaimsProviderTrustsGroup | format-list * | Out-file "Get-AdfsClaimsProviderTrustsGroup.txt"
+		Get-AdfsFarmInformation | format-list * | Out-file "Get-AdfsFarmInformation.txt"
+		Get-AdfsLocalClaimsProviderTrust | format-list * | Out-file "Get-AdfsLocalClaimsProviderTrust.txt"
+		Get-AdfsNativeClientApplication | format-list * | Out-file "Get-AdfsNativeClientApplication.txt"
+		Get-AdfsRegistrationHosts | format-list * | Out-file "Get-AdfsRegistrationHosts.txt"
+		Get-AdfsRelyingPartyTrustsGroup | format-list * | Out-file "Get-AdfsRelyingPartyTrustsGroup.txt"
+		Get-AdfsRelyingPartyWebTheme | format-list * | Out-file "Get-AdfsRelyingPartyWebTheme.txt"
+		Get-AdfsScopeDescription | format-list * | Out-file "Get-AdfsScopeDescription.txt"
+		Get-AdfsServerApplication | format-list * | Out-file "Get-AdfsServerApplication.txt"
+		Get-AdfsTrustedFederationPartner | format-list * | Out-file "Get-AdfsTrustedFederationPartner.txt"
+		Get-AdfsWebApiApplication | format-list * | Out-file "Get-AdfsWebApiApplication.txt"
+
+# ADFS 2012R2 too
+		Get-AdfsAdditionalAuthenticationRule | format-list * | Out-file "Get-AdfsAdditionalAuthenticationRule.txt"
+		Get-AdfsAuthenticationProvider | format-list * | Out-file "Get-AdfsAuthenticationProvider.txt"
+		Get-AdfsAuthenticationProviderWebContent | format-list * | Out-file "Get-AdfsAuthenticationProviderWebContent.txt"
+		Get-AdfsClient | format-list * | Out-file "Get-AdfsClient.txt"
+		Get-AdfsGlobalAuthenticationPolicy | format-list * | Out-file "Get-AdfsGlobalAuthenticationPolicy.txt"
+		Get-AdfsGlobalWebContent | format-list * | Out-file "Get-AdfsGlobalWebContent.txt"
+		Get-AdfsNonClaimsAwareRelyingPartyTrust | format-list * | Out-file "Get-AdfsNonClaimsAwareRelyingPartyTrust.txt"
+		Get-AdfsRelyingPartyWebContent | format-list * | Out-file "Get-AdfsRelyingPartyWebContent.txt"
+		Get-AdfsSslCertificate | format-list * | Out-file "Get-AdfsSslCertificate.txt"
+		Get-AdfsWebApplicationProxyRelyingPartyTrust | format-list * | Out-file "Get-AdfsWebApplicationProxyRelyingPartyTrust.txt"
+		Get-AdfsWebConfig | format-list * | Out-file "Get-AdfsWebConfig.txt"
+		Get-AdfsWebTheme | format-list * | Out-file "Set-AdfsWebTheme.txt"
