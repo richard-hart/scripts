@@ -1,0 +1,585 @@
+Exchange Online Version
+----------------------------
+How can we find version of the Exchange Server in the Office 365?
+Open this URL and type the login id and password when authentication prompt appears:
+
+https://outlook.office.com/mapi/emsmdb/?showdebug=yes
+
+
+Log Files
+-------------
+You can use PowerShell to search for string matches in the log files. In this example Get-Childitem returns the list of log files in the current directory, and I’m piping those into Select-String to look for “microsoft.com”:
+
+Get-ChildItem | Select-String -Pattern "microsoft.com"
+
+You also get the remote IP address (eg 114.42.130.106) returned, so you can perform a further search to see the entire SMTP conversation that occurred with that host:
+
+Get-ChildItem | Select-String -Pattern "192.168.0.1"
+
+Those results can be a bit ugly though. Sometimes it's easier to output them to a file for reading:
+
+$results = Get-ChildItem | Select-String -Pattern "192.168.0.1"
+$results | select line | Export-Csv -NoTypeInformation results.csv
+
+This assume that LogParser has been installed:
+cd D:\Exchange\TransportRoles\Logs\ProtocolLog\SmtpReceive
+
+"C:\Program Files (x86)\Log Parser 2.2\logparser.exe" "SELECT EXTRACT_PREFIX(remote-endpoint,0,':') as IP,REVERSEDNS(EXTRACT_PREFIX(remote-endpoint,0,':')) as Name,Count(*) as Hits from *.log WHERE data LIKE '%EHLO%' GROUP BY IP ORDER BY Hits DESC" -i:CSV -nSkipLines:4 -rtp:-1
+
+get-messagetrackinglog -MessageSubject "subject_here" -Start "01/03/2015 11:30:00" -End "11/11/2015 15:40:00"
+
+To view Exchange transaction log files to keep:
+
+"D:\Exchange\bin\eseutil.exe" /MH "E:\Exchange\Mailbox\db1\DB1.edb"
+"D:\Exchange\bin\eseutil.exe" /MK "G:\Exchange\Mailbox\DB1\E02.chk"
+
+Get Top Sender IP's from Protocol Logs with Log Parser
+When run from the folder containing the protocol logs (in this case C:\Program Files\Microsoft\Exchange Server\V14\TransportRoles\Logs\ProtocolLog\SmtpReceive) it looks like this:
+
+"C:\Program Files (x86)\Log Parser 2.2\logparser.exe" "SELECT EXTRACT_PREFIX(remote-endpoint,0,':') as IP,REVERSEDNS(EXTRACT_PREFIX(remote-endpoint,0,':')) as Name,Count(*) as Hits from *.log WHERE data LIKE '%EHLO%' GROUP BY IP ORDER BY Hits DESC" -i:CSV -nSkipLines:4 -rtp:-1
+
+Get Top Sender IP's from Message Tracking Logs with Log Parser
+When run from the folder containing the message tracking logs (in this case C:\Program Files\Microsoft\Exchange Server\V14\TransportRoles\Logs\MessageTracking) it will look like this:
+
+"C:\Program Files (x86)\Log Parser 2.2\logparser.exe" "SELECT client-ip as IP,REVERSEDNS(client-ip) as Name,Count(*) as Hits from *.log WHERE (event-id='RECEIVE') GROUP BY IP ORDER BY Hits DESC" -i:CSV -nSkipLines:4 -rtp:-1
+
+
+Get-TransportServer | Get-MessageTrackingLog -ResultSize Unlimited -Start “10/14/2017” -End “11/14/2017” -Sender “test@test.com” -EventID RECEIVE | ? {$_.Source -eq “STOREDRIVER”} | ForEach { $intSent++ }
+Get-TransportServer | Get-MessageTrackingLog -ResultSize Unlimited -Start “10/14/2017” -End “11/14/2017” -Recipients “test@test.com” -EventID DELIVER | ForEach { $intRec++ }
+
+Write-Host “E-mails sent:    “, $intSent
+Write-Host “E-mails received:”, $intRec
+
+Get-Exchangeserver | where {$_.isHubTransportServer -eq $true -or $_.isMailboxServer -eq $true} | Get-Messagetrackinglog -ResultSize Unlimited -Recipients “test@test.com” -Start "10/14/2017" -End "11/14/2017" | Select-Object Timestamp,Clienthostname,eventid,source,sender,@{Name="Recipients";Expression={$_.recipients}},Recipientcount,serverhostname,SourceContext | Export-Csv c:\temp\Messageinfo.csv
+
+Output message trace over 5000 lines:
+
+$cred = Get-Credential
+
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $cred -Authentication Basic -AllowRedirection
+Import-PSSession $Session
+
+$index = 1
+do
+{
+$a = Get-MessageTrace -SenderAddress test@test.com -StartDate “03/09/2018 12:00” -EndDate “03/09/2018 15:00” -PageSize 5000 -Page $index
+$a | export-csv c:\temp\test.csv -Append
+$index ++
+}
+while ($index -le 1000 -and $a.count)
+
+
+Connectors
+-------------------
+Get-ReceiveConnector | select server,name,*protocollogginglevel | sort server | ft -auto
+Get-TransportServer ho-ex2010-mb1 | select *protocollog*
+Get-SendConnector | select name,*protocollogginglevel | ft -auto
+
+Set-ReceiveConnector -Identity "Default internal receive connector" -MaxInboundConnectionPerSource 2000
+
+Export receive connector remote IPs:
+Get-ReceiveConnector “Inbound from Office 365” | select -ExpandProperty remoteipranges|export-csv d:\ICT\RelayIPs.csv 
+Get-ReceiveConnector “Anonymous Relay Permitted” | select -ExpandProperty remoteipranges|export-csv d:\ICT\AnonymousRelay.csv 
+Get-ReceiveConnector “Relay from Apps” | select -ExpandProperty remoteipranges|export-csv d:\ICT\AppsRelay.csv
+
+Configure receive connector to send anonymous relay:
+Get-ReceiveConnector "Anonymous Relay" | Add-ADPermission -User "NT AUTHORITY\ANONYMOUS LOGON" -ExtendedRights "Ms-Exch-SMTP-Accept-Any-Recipient"
+
+Dump configuration of receive connector:
+Get-ReceiveConnector "Anonymous Relay" | Format-List Enabled,TransportRole,Bindings,RemoteIPRanges
+
+
+Mailboxes
+----------
+Get recipient:
+Get-Recipient test@test.com | fl name,recipienttype,exchangeGuid
+Get-Recipient test@test.com | fl name,recipienttype,exchangeguid,skuAssigned
+
+Get MSOL user account:
+Get-MsolUser -UserPrincipalName test@test.com | fl displayName,userprincipalname,immutableid,isLicensed,Licenses
+
+Get number of items in mailbox:
+Get-MailboxFolderStatistics test@test.com | Select Identity, ItemsInFolder
+
+Delete all mailbox content:
+Search-Mailbox -Identity "test@test.com" -DeleteContent -force
+
+Get user photo:
+$data = Get-UserPhoto -Identity UserID            
+$data.PictureData | Set-Content C:\Temp\UserID.jpg -Encoding Byte
+
+Change display name:
+Get-remoteMailbox -Identity test@test.com | Set-RemoteMailbox -DisplayName "Test, Another"
+
+Change primary SMTP address:
+Get-remoteMailbox -Identity test@test.com | Set-RemoteMailbox -EmailAddressPolicyEnabled $false -PrimarySmtpAddress test@test.com
+Get-remoteMailbox -Identity test@test.com | Set-RemoteMailbox -EmailAddressPolicyEnabled $true
+
+Un-hide bulk mailboxes from the GAL:
+Get-mailbox -ResultSize Unlimited -OrganizationalUnit "OU" | Set-mailbox -hiddenfromaddresslistsenabled $false
+
+Show the number of mailboxes created and deleted for the months Jan to Nov, 2017
+Get-MailboxActivityReport -ReportType Monthly -StartDate 01/01/2017 -EndDate 11/01/2017
+
+This example retrieves details for incoming messages between June 13, 2015 and June 15, 2015.
+Get-MailTrafficReport -Direction Inbound -StartDate 06/13/2015 -EndDate 06/15/2015
+
+This example retrieves the statistics for outgoing messages on December 12, 2015, and displays the results in a table. Every unique combination of EventType and Action is displayed on a separate row in the table.
+Get-MailTrafficReport -StartDate 12/12/2015 -EndDate 12/12/2015 -Direction Outbound | Format-Table Domain,Date,EventType,Action,MessageCount
+
+This example is similar to the previous example, but now the results are summarized. Because the EventType is one of the summarized values, the rows in the table now contain the unique values of Action. The total number of rows in the report is reduced, and values of MessageCount are correspondingly larger on each row.
+Get-MailTrafficReport -StartDate 12/12/2015 -EndDate 12/12/2015 -Direction Outbound -SummarizeBy Domain,EventType | Format-Table Domain,Date,EventType,Action,MessageCount
+
+Retrieve the mailbox statistics for the specified mailbox:
+Get-MailboxStatistics -Identity test@test.com
+
+This example retrieves the mailbox statistics for a single disconnected mailbox. The value for the StoreMailboxIdentity parameter is the mailbox GUID of the disconnected mailbox. You can also use the LegacyDN:
+Get-MailboxStatistics -Database "Mailbox Database" -StoreMailboxIdentity 3b475034-303d-49b2-9403-ae022b43742d
+
+List specific mailbox permissions:
+$Mailbox = Get-Mailbox -Identity test@test.com | Select Identity,Alias,DisplayName | sort displayname
+$Mailbox | sort displayname | foreach {Get-MailboxPermission -Identity $_.alias | ft -autosize identity,user,accessrights} | out-string -width 4096 >> C:\ICT\SharedPermissions.txt
+
+List User mailbox permissions:
+The first cmdlet will collect all the user mailboxes and insert them into a variable.
+$Mailboxes = Get-Mailbox -RecipientTypeDetails UserMailbox -ResultSize:Unlimited | Select Identity,Alias,DisplayName | sort displayname
+This step will take that variable of mailboxes, and for each one output the name of the mailbox, user with access and the access rights assigned, and write it to a txt file.
+$mailboxes | sort displayname | foreach {Get-MailboxPermission -Identity $_.alias | ft -autosize identity,user,accessrights} | out-string -width 4096 >> C:\ICT\SharedPermissions.txt
+
+List Shared mailbox permissions:
+The first cmdlet will collect all the shared mailboxes and insert them into a variable.
+$Mailboxes = Get-Mailbox -RecipientTypeDetails SharedMailbox -ResultSize:Unlimited | Select Identity,Alias,DisplayName | sort displayname
+This step will take that variable of mailboxes, and for each one output the name of the mailbox, user with access and the access rights assigned, and write it to a txt file.
+$mailboxes | sort displayname | foreach {Get-MailboxPermission -Identity $_.alias | ft identity,user,accessrights} >C:\ICT\SharedPermissions.txt
+
+List all AD user accounts and include passwordresetdate, lastlogondate, passwordneverexpire:
+Get-ADUser -ResultSize Unlimited -filter * -properties LastLogonDate, DistinguishedName, passwordlastset, passwordneverexpires | sort-object name | select-object Name, LastLogonDate, DistinguishedName, passwordlastset, passwordneverexpires | Export-csv -path c:\temp\user-password-info.csv
+
+List last logon times for all mailboxes, and sort descending:
+Get-Mailbox -resultsize unlimited | Get-MailboxStatistics | Sort-Object LastLogonTime -Descending | select displayname, lastlogontime | Export-csv C:\Temp\LastLogonTime.csv
+
+List last logon times for all mailboxes:
+Get-mailbox -resultsize unlimited | Get-MailboxStatistics | select displayname, lastlogontime | Export-Csv -NoTypeInformation c:\temp\results.csv
+
+List Office 365 Mailboxes with a Forward:
+Get-Mailbox -ResultSize unlimited | select UserPrincipalName,ForwardingSmtpAddress,DeliverToMailboxAndForward | Export-csv C:\Temp\users.csv -NoTypeInformation
+
+List all mailboxes to which a particular user has Full Access permissions:
+Get-Mailbox -ResultSize unlimited | Get-MailboxPermission -User vasil
+
+List all shared/user/room/whatever mailboxes to which particular user has Full Access permissions:
+Get-Mailbox -ResultSize unlimited -RecipientTypeDetails UserMailbox,SharedMailbox -ResultSize Unlimited | Get-MailboxPermission -User vasil
+
+List all mailboxes to which members of a particular security group have access:
+Get-Mailbox -ResultSize unlimited | Get-MailboxPermission -User secgrp
+
+List all mailboxes to which a user has Send As permissions:
+Get-Mailbox -ResultSize unlimited | Get-RecipientPermission -Trustee vasil
+
+List all user mailboxes to which members of a particular security group have Send As access:
+Get-Mailbox -ResultSize unlimited -RecipientTypeDetails UserMailbox -ResultSize Unlimited | Get-RecipientPermission -Trustee secgrp
+
+List all mailboxes to which a particular security principal has Send on behalf of permissions:
+Get-Mailbox -ResultSize unlimited | ? {$_.GrantSendOnBehalfTo -match "vasil"}
+
+Convert Regular Mailbox to Room Mailbox:
+Set-Mailbox <Identity> -Type Room
+
+Convert Room Mailbox to Regular Mailbox:
+Get-Mailbox <Room:\Calendar> | Set-Mailbox -Type Regular
+
+Assign Room Mailbox Manager Full Access permission:
+Add-MailBoxPermission "<Identity>" -User "<Identity>" -AccessRights FullAccess
+
+Display list of Room Mailboxes:
+Get-Mailbox -Filter '(RecipientTypeDetails -eq "RoomMailBox")' | Select Name,Alias
+
+Find all recipients with a particular email address:
+Get-Recipient -Filter {EmailAddresses -like "*mydomain.com"}
+
+List soft-deleted mailboxes:
+Get-Mailbox -SoftDeletedMailbox 
+
+Restore soft deleted mailbox:
+$oldMailbox = Get-Mailbox -SoftDeletedMailbox -Identity test@test.onmicrosoft.com
+New-MailboxRestoreRequest -SourceMailbox $oldMailbox.DistinguishedName -TargetMailbox <SMTPaddress> -AllowLegacyDNMismatch
+
+Get Local Move Request statistics:
+Get-MoveRequestStatistics -Identity test@test.com
+
+List all Email Address Policies:
+Get-EmailAddressPolicy
+Get-EmailAddressPolicy _policyname_ | fl > c:\temp\policy.txt
+
+Get-MailboxFolderPermission -identity test@test.com | Ft -autosize | out-string -width 4096
+
+Get-Mailbox <SMTP> | fl displayname, GrantSendOnBehalfTo
+
+for exporting send as permission:
+
+Get-Mailbox <SMTP> -ResultSize unlimited | Get-ADPermission | Where {$_.ExtendedRights -like “Send-As” -and $_.User -notlike “NT AUTHORITY\SELF” -and $_.Deny -eq $false} | Export-Csv -path C:\TEMP\sendas.csv –NoTypeInformation
+
+Get-Mailbox -Identity smtp@domain.com | ft GrantSendOnBehalfTo
+
+Check protocol settings to verify that the user's account is configured to use the correct protocol:
+Get-Mailbox user@domain.com | fl ProtocolSettings
+
+Note - The ProtocolSettings attribute should contain "HTTP??§§§§§§, OWA?" to allow access to OWA. 
+If the ProtocolSettings attribute starts with a zero (0), the protocol is disabled.
+If the ProtocolSettings attribute does not contain the "HTTP??§§§§§§, OWA?" text, reset the protocol settings as follows:
+
+Set-CASmailbox user@domain.com -owaenabled $false
+Set-CASmailbox user@domain.com -owaenabled $True
+
+Set maximum message size on a mailbox
+Set-Mailbox -Identity alias@domain.com -MaxSendSize 75MB -MaxReceiveSize 75MB
+
+Set maximum message size on all mailboxes
+Get-Mailbox | Set-Mailbox -MaxSendSize 75MB -MaxReceiveSize 75MB
+
+Set the maximum message size default settings
+Get-MailboxPlan | Set-MailboxPlan -MaxSendSize 75MB -MaxReceiveSize 75MB
+
+View maximum message size 
+Get-MailboxPlan | fl MaxSendSize
+
+Display information about Forwarding rule
+Get-Mailbox test@test.com | FL DeliverToMailboxAndForward,ForwardingAddress,ForwardingSmtpAddress
+
+Display Inbox forwarding rule:
+Get-InboxRule -Mailbox test@test.com
+
+Turn off Email Automatic Forwarding to internal Recipient
+Set-Mailbox <Identity> -ForwardingAddress $Null
+
+Turn off email Automatic Forwarding to External Recipient
+Set-Mailbox rosalind.test@test.com  -ForwardingSmtpAddress $Null
+
+Forward Email to External Recipient & save local copy
+Set-Mailbox <Identity> -ForwardingsmtpAddress <External Recipient Email Address> -DeliverToMailboxAndForward $True
+
+Forward Email to External Recipient & don't save local copy:
+Set-Mailbox <Identity> -ForwardingsmtpAddress <External Recipient Email Address> -DeliverToMailboxAndForward $False
+
+Check Out Of Office reply for a user:
+Get-MailboxAutoReplyConfiguration "username"
+
+Disable the OOF message for the selected mailbox:
+Set-MailboxAutoReplyConfiguration -Identity "username" -AutoReplyState Disabled
+
+Execute the below cmdlet to get the OOO message enabled users along with the Date and the messages set:
+Get-Mailbox | Get-MailboxAutoReplyConfiguration | Where {$_.AutoReplyState -eq "Scheduled" -or $_.AutoReplyState -eq "Enabled"} | Format-List MailboxOwnerId, StartTime, EndTime, InternalMessage, ExternalMessage
+
+Set the standard message for users who has set OOO messages:
+Set-MailboxAutoReplyConfiguration -Identity mike -AutoReplyState scheduled -InternalMessage "I am out of the office" -ExternalMessage "I am out of the office"
+
+This cmdlet is primarily used to preview all rules set for a specific mailbox
+Get-InboxRule -Mailbox <mailbox_name>
+
+Get-InboxRule -mailbox myuser@myDomain.com
+Get-InboxRule -mailbox myuser@myDomain.com | fl
+Remove-InboxRule -Identity "domain.com/OU/Users/Username\123456789XXXXXXX"
+Remove-InboxRule -Mailbox test@test.com -Identity "11701342"
+
+List mailboxes that don't have 'domain.mail.onmicrosoft.com' as an address:
+Get-Mailbox -resultsize Unlimited | ? { !($_.emailaddresses -like "*test.mail.onmicrosoft.com*") }
+
+Enable sent emails to go in Sent Items of shared mailbox:
+
+For emails Sent As the shared mailbox: set-mailbox <mailbox name> -MessageCopyForSentAsEnabled $True
+For emails Sent On Behalf of the shared mailbox: set-mailbox <mailbox name> -MessageCopyForSendOnBehalfEnabled $True
+
+If you then want to disable the feature again, you can do it as follows:
+
+For emails Sent As the shared mailbox: set-mailbox <mailbox name> -MessageCopyForSentAsEnabled $False
+For emails Sent On Behalf of the shared mailbox: set-mailbox <mailbox name> -MessageCopyForSendOnBehalfEnabled $False
+
+(Get-Mailbox joebloggs) | ft ExchangeGuid
+
+Enable-RemoteMailbox -Identity test@test.com -PrimarySMTPAddress test@test.com -RemoteRoutingAddress test@test.mail.onmicrosoft.com -DisplayName "Bloggs, Joe" -Alias joe.bloggs
+Set-RemoteMailbox test@test.com -EmailAddressPolicyEnabled $true
+
+Set-Mailbox -Identity test@test.com -Type Shared
+Set-RemoteMailbox -Identity test@test.com -Type Room
+
+Search-Mailbox -Identity "test@test.com" -SearchQuery Subject:"Undeliverable: blah blah" -DeleteContent
+
+Export-Mailbox -Identity user@domain.com -PSTFolderPath 'C:\Whatever\user.pst' -IncludeFolders "\Deleted Items"
+
+Grant 'send-as' permissions
+Add-RecipientPermission -Identity test@test.com -AccessRights SendAs -Trustee test@test.com
+
+Remove 'send-as' permissions
+Remove-RecipientPermission -Identity test@test.com -AccessRights SendAs -Trustee test@test.com
+
+Add-MailboxFolderPermission -Identity test@test.com -User <SMTP>-PublishingEditor@test.com -AccessRights PublishingEditor
+ 
+ForEach($f in (Get-MailboxFolderStatistics test@test.com | Where { $_.FolderPath.Contains("/") -eq $True } ) )
+{
+$fname = "test@test.com:" + $f.FolderPath.Replace("/","\"); Add-MailboxFolderPermission $fname -User <SMTP>-PublishingEditor@test.com -AccessRights PublishingEditor
+Write-Host $fname
+Start-Sleep -Milliseconds 1000
+}
+
+Set-MailboxAutoReplyConfiguration -Identity test@test.com -AutoReplyState Enabled -ExternalMessage "external message autoreply" -InternalMessage "internal message autoreply"
+Set-MailboxAutoReplyConfiguration -Identity test@test.com -AutoReplyState Disabled
+Get-MailboxAutoReplyConfiguration -Identity test@test.com
+
+New-MailContact -Alias joebloggs -DisplayName Bloggs, Joe-ExternalEmailAddress joe.bloggs@test.com
+
+Remove-MsolUser -UserPrincipalName <user ID> -RemoveFromRecyclebin
+
+Remove-RemoteMailbox -Identity test@test.com
+
+
+Clutter
+-------
+Disable 'Clutter':
+Set-Clutter -Identity {alias} -Enable $false
+Set-Clutter -Identity user@domain.com -Enable $true
+Set-Clutter -Identity user@domain.com -Enable $false
+Get-Mailbox | Set-Clutter -Enable $false
+
+Turn off Clutter for single user:
+Get-Mailbox –identity someone@somewhere.com | Set-Clutter -enable $false
+
+Check Clutter status for single user:
+get-clutter –Identity someone@somewhere.com
+
+
+Focused Inbox
+-------------
+Turn Focused Inbox On or Off in your organization:
+Set-OrganizationConfig -FocusedInboxOn $false
+Set-OrganizationConfig -FocusedInboxOn $true
+
+Turn Focused Inbox On or Off for specific users:
+Get-FocusedInbox -Identity <tim@contoso.com>
+Set-FocusedInbox -Identity <tim@contoso.com> -FocusedInboxOn $false
+Set-FocusedInbox -Identity <tim@contoso.com> -FocusedInboxOn $true
+
+
+Recovering deleted items
+-------------------------
+Recover Deleted Items from Exchange Dumpster:
+Search-Mailbox -identity mailboxalias -SearchDumpsterOnly -TargetMailbox "Discovery Search Mailbox" -TargetFolder mailboxalias
+
+Set deleted items retention policy on a mailbox:
+Set-Mailbox -Identity "John Doe" -RetainDeletedItemsFor 30
+
+This example increases the deleted item retention period for all user mailboxes in the organization:
+Get-Mailbox -ResultSize unlimited -Filter {(RecipientTypeDetails -eq 'UserMailbox')} | Set-Mailbox -RetainDeletedItemsFor 30
+
+To verify that you've changed the value for how long deleted items are to be retained, run one of the following commands:
+Get-Mailbox <Name> | FL RetainDeletedItemsFor
+Or 
+Get-Mailbox somemailbox@somedomain.com | FL Mailboxretention
+Or
+Get-Mailbox -ResultSize unlimited -Filter {(RecipientTypeDetails -eq 'UserMailbox')} | FL Name,RetainDeletedItemsFor
+
+$deletedmailbox = Get-Mailbox -identity <username> -SoftDeletedMailbox
+New-MailboxRestoreRequest -SourceMailbox $deletedmailbox.ExchangeGuid -TargetMailbox <UPN>
+
+
+Databases
+---------
+List basic information for a network in a DAG:
+Get-DatabaseAvailabilityGroupNetwork -Identity DAG1
+
+List all information for a network in a DAG:
+Get-DatabaseAvailabilityGroupNetwork -Identity DAG1 | Format-List
+
+List information about the DAG:
+Get-DatabaseAvailabilityGroup | fl
+
+Test DAG replication:
+Test-ReplicationHealth
+
+Test DAG replication verbose output:
+Test-ReplicationHealth | fl
+
+Enable circular logging on a database:
+Get-mailboxdatabase -Identity DBname | set-mailboxdatabase -CircularloggingEnabled $true
+ 
+Disable circular logging on a database:
+Get-mailboxdatabase -Identity DBname | set-mailboxdatabase -CircularloggingEnabled $false
+ 
+Enable Circular logging on all the databases in a DAG:
+Get-mailboxdatabase -identity DAGname* | set-mailboxdatabase -CircularloggingEnabled $true
+ 
+Disable Circular logging on all the databases in a DAG:
+Get-mailboxdatabase -identity DAGname* | set-mailboxdatabase -CircularloggingEnabled $false
+
+
+Address Lists
+-------------
+Show all legacy Address Lists:
+Get-AddressList | WHERE { $_.RecipientFilterType -eq 'Legacy' } | fl
+
+
+Configuration
+--------------
+To check a summary of your configuration use:
+get-OrganizationConfig 
+
+To check your overall system health use:
+Test-SystemHealth  NOTE: If this shows nothing but the prompt, you are good to go
+Test-ServiceHealth
+Test-MailFlow
+
+Get Exchange version number (run from Exchange management shell):
+GCM exsetup |%{$_.Fileversioninfo}
+
+
+Queues
+-------
+Get-Queue | Retry-Queue -Resubmit $true
+
+Get-Queue -Identity "servername\shadow\xxxxx"| Get-Message|Remove-Message -WithNDR:$false
+
+Set-TransportConfig -ShadowMessageAutoDiscardInterval 04:00:00
+Set-TransportConfig -ShadowRedundancyEnabled $false
+Set-TransportConfig -ShadowMessagePreferenceSetting LocalOnly
+
+View Exchange 2010 message queues:
+get-queue
+Force re-sending of stuck messages
+First suspend all messages in the queue, then run the following command (change the queue name) ensuring that the "C:\Contoso Export" 
+already directory exists:
+
+$Queue = Get-Message -ResultSize Unlimited -Queue "EDGE01\Unreachable"
+$Queue | ForEach-Object {$Temp="D:\Mailexport\"+$_.InternetMessageID+".eml";$Temp=$Temp.Replace("<","_");$Temp=$Temp.Replace(">","_");Export-Message $_.Identity | AssembleMessage -Path $Temp} 
+
+When all messages have been successfully exported, move them (a few at a time) to the following directory:
+
+D:\Exchange\TransportRoles\Replay
+
+Messages will now be delivered, when they've all gone through, delete the original suspended messages from the stuck queue.
+
+Resubmit messages stuck in a queue:
+get-queue "EDGE01\Unreachable | retry-queue -resubmit $true
+
+
+Public Folders
+---------------
+Get Public Folder info:
+Get-PublicFolderStatistics -ResultSize Unlimited -server ex01 | FL Name,ItemCount
+Get-PublicFolderStatistics -ResultSize Unlimited -server bdcvmex01 | FL Name,ItemCount
+Get-PublicFolder -recurse |fl name,replicas
+Get-PublicFolder -recurse \non_ipm_subtree |fl name, replicas
+
+
+Calendars & Meeting Requests
+-----------------------------
+List all calendar delegates:
+Get-MailboxFolderPermission HuKu:\Calendar
+
+Disable meeting forwarded notifications:
+Set-CalendarProcessing -Identity test@test.com -RemoveForwardedMeetingNotifications $True
+Get-Mailbox -ResultSize unlimited | Set-CalendarProcessing -RemoveForwardedMeetingNotifications $True
+
+Remove forwarded meeting notifications:
+Set-CalendarProcessing -Identity test@test.com -RemoveForwardedMeetingNotifications $True
+
+Remove forwarded meeting notifications for all users:
+Get-Mailbox -ResultSize unlimited | Set-CalendarProcessing -RemoveForwardedMeetingNotifications $True
+
+Get-MailboxCalendarSettings -Identity myuser@myDomain.com | format-list identity,resource delegates
+
+Enable/disable calendar repair assistant for a mailbox
+Set-Mailbox -Identity tony@contoso.com -CalendarRepairDisabled $true
+Set-Mailbox -Identity ayla@contoso.com -CalendarRepairDisabled $false
+
+Enable/disable calendar repair assistant for a mailbox server
+This example disables the automatic fixing of missing calendar items for Mailbox server MBX02:
+Set-MailboxServer -Identity MBX02 -CalendarRepairMissingItemFixDisabled $true
+This example ebables the automatic fixing of missing calendar items for Mailbox server MBX02:
+Set-MailboxServer -Identity MBX02 -CalendarRepairMissingItemFixDisabled $false
+
+See which users can send meeting requests to a resource mailbox:
+Get-CalendarProcessing -Identity "Conference Room"
+Get-CalendarProcessing -Identity "room@test.com" | Format-List
+
+Change calendar resource scheduling options:
+Set-CalendarProcessing -Identity "room@test.com"  -BookInPolicy $Nul
+Set-CalendarProcessing -Identity "room@test.com"  -AllBookInPolicy $False
+Set-CalendarProcessing -Identity "room@test.com"  -AllRequestOutOfPolicy $False
+Set-CalendarProcessing -Identity "room@test.com"  -BookingWindowInDays 360
+
+Allow all users to send meeting requests to a resource mailbox:
+Set-CalendarProcessing -Identity "Conference Room" -AutomateProcessing AutoAccept -AllBookInPolicy $true
+
+Specify which users can send meeting requests to a resource mailbox:
+Set-CalendarProcessing -Identity "Conference Room" -AutomateProcessing AutoAccept -AllBookInPolicy $false
+Set-CalendarProcessing -Identity "Conference Room" -AutomateProcessing AutoAccept -BookInPolicy "ayla@contoso.com","tony@contoso.com"
+
+
+Mailbox Migrations
+------------------
+Get-MoveRequestStatistics user.name -IncludeReport | fl
+
+(Get-MoveRequestStatistics user.name -IncludeReport).Report
+
+$r = Get-MoveRequest user.name | Get-MoveRequestStatistics -IncludeReport
+$r.Report.Failures
+
+Get-MoveRequestStatistics user.name -IncludeReport | Export-CliXml export.xml
+$r = Import-CliXml export.xml
+$r.Report
+
+
+Office 365 Tenant
+-----------------
+Get Office 365 license count:
+Get-MsolAccountSku
+
+Get Office 365 subscription details:
+Get-MsolSubscription
+
+List all licensed Office 365 users and save to csv file:
+Get-MsolUser -maxresults 10000 | Where-Object { $_.isLicensed -eq "TRUE" } | Select-Object UserPrincipalName, DisplayName | Export-Csv D:\Scripts\LicensedUsers.csv
+
+List all accepted domains in O365 tenant:
+Get-MsolDomain | Export-CSV o365domains.csv
+
+List all domains on Skype for Business whitelist:
+Get-CsTenantFederationConfiguration | Select-Object -ExpandProperty AllowedDomains | Select-Object AllowedDomain | Export-CSV c:\scripts\skypelist.csv
+
+Change the UPN in Office 365 Azure AD:
+Set-MsolUserPrincipalName -UserPrincipalName mary.osgood@contoso.onmicrosoft.com -NewUserPrincipalName mary.smith@contoso.com
+
+
+Organisation Sharing & Federation
+----------------------------------
+Get federation information:
+Get-FederationInformation -DomainName "some.domain.com"
+
+Create federation relationship:
+Get-FederationInformation -DomainName "some.domain.com" | New-OrganizationRelationship -Name "Some Domain" -DomainNames "some.domain.com" -FreeBusyAccessEnabled $true -FreeBusyAccessLevel LimitedDetails
+
+View organisation relationships:
+Get-OrganizationRelationship | FL
+
+
+
+One Drive for Business
+-----------------------
+Determine if the OneDrive is available for restore:
+Get-SPODeletedSite -Identity <URL>
+
+If you don't know the URL of the deleted OneDrive, run the following command:
+Get-SPODeletedSite -IncludeOnlyPersonalSite | FT url
+
+Restore the OneDrive to an active state:
+Restore-SPODeletedSite -Identity <URL>
+
+Assign a site collection administrator to the OneDrive to access the needed data:
+Set-SPOUser -Site <URL> -LoginName <UPNofDesiredAdmin> -IsSiteCollectionAdmin $True
+
+Permanently delete a OneDrive:
+Remove-SPOSite -Identity <URL>
+
+When you permanently delete a OneDrive, you will not be able to restore it.
+
+
+
