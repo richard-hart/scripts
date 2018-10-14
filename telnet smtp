@@ -1,0 +1,26 @@
+Type OPEN mail1.fabrikam.com 25, and then press Enter
+
+Type EHLO contoso.com, and then press Enter
+
+Type MAIL FROM:chris@contoso.com, and then press Enter
+
+Type RCPT TO:kate@fabrikam.com
+
+NOTIFY=success,failure, and then press Enter.
+The optional NOTIFY command specifies the particular delivery status notification (DSN) messages (also known as bounce messages, nondelivery reports, or NDRs) that the SMTP is required to provide. In this example, you're requesting a DSN message for successful or failed message delivery.
+
+Type DATA, and then press Enter
+
+Type Subject: Test from Contoso, and then press Enter
+
+Press Enter again
+
+A blank line is needed between the Subject: field and the message body
+
+Type This is a test message, and then press Enter
+
+Type a period ( . ), and then press Enter
+
+To disconnect from the SMTP server, type QUIT, and then press Enter
+
+To close the Telnet session, type quit, and then press Enter.
