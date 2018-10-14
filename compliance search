@@ -1,0 +1,16 @@
+Ensure that you use your Office 365 tenant account and not the usual AD account
+
+$UserCredential = Get-Credential
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.compliance.protection.outlook.com/powershell-liveid -Credential $UserCredential -Authentication Basic -AllowRedirection
+Import-PSSession $Session -AllowClobber -DisableNameChecking
+
+$Host.UI.RawUI.WindowTitle = $UserCredential.UserName + " (Office 365 Security & Compliance Center)"  
+  
+
+$Case = "case name"
+New-ComplianceSearchAction -SearchName $Case -Purge -PurgeType SoftDelete
+  
+New-ComplianceSearchAction -SearchName "Mail_Box_Error" -Purge -PurgeType SoftDelete
+
+
+Get-ComplianceSearchAction -Identity "Mail_Box_Error_Purge"
