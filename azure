@@ -1,0 +1,11 @@
+Import-Module AzureRM
+
+Login-AzureRmAccount
+
+Get-AzureRmSubscription
+Select-AzureRmSubscription -SubscriptionName "Dynamics CRM"
+Get-AzureRmContext
+
+Get-AzureRmVM
+
+Get-AzureRMResource | Export-CSV C:\Temp\AllAzureRes.CSV
