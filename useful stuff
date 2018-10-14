@@ -1,0 +1,67 @@
+netsh trace start scenario=netconnection capture=yes maxsize=500M persistent=yes tracefile=c:\server.etl
+netsh trace stop
+
+certutil.exe -URL http://crl.comodoca.com/COMODORSADomainValidationSecureServerCA.crl
+
+certutil -URL "http://crl3.digicert.com/DigiCertCloudServicesCA-1-g1.crl"
+Certutil -verify -urlfetch (Test that the CRL in a certificate is accessible. You should run this from ADFS, WAP and Internet connected clients)
+Certutil -urlcache (Show the CRL cache)
+Certutil – urlcache * Delete (Clear the CRL cache)
+
+
+Export-DhcpServer –ComputerName <ServerName> -Leases -File C:exportdhcpexp.xml -verbose
+
+Import-DhcpServer –ComputerName <ServerName> -backupPath C:\ICT\dhcpbackup -Verbose
+
+Export-DhcpServer –ComputerName <ServerName> -Leases -ScopeId 192.0.0.0 -File C:\ICT\192-160-0-0.xml -verbose
+Export-DhcpServer –ComputerName <ServerName> -Leases -ScopeId 192.168.0.0 -File C:\ICT\192-168-0-0.xml -verbose
+
+Import-DhcpServer –ComputerName <ServerName> -Leases –File C:\ICT\Exports\<ServerName>\192-168-0-0a.xml -BackupPath C:\ICT\dhcpbackup -Verbose
+
+
+list UPN's of domain controllers:
+dsquery * "OU=Domain Controllers,DC=contoso,DC=com" -filter "(&(objectcategory=computer)(servicePrincipalName=*))" -attr distinguishedName servicePrincipalName > c:\temp\spns.txt
+
+
+auditpol.exe /get /category:*
+
+wbadmin start systemstatebackup -backupTarget:D: -quiet
+
+nltest /whowill:Domain Account
+
+dism /online /cleanup-image /spsuperseded
+
+PortQry command:
+
+portqry -n 192.168.0.1 -p tcp -e 443
+
+To view port usage and processes:
+netstat –anob
+
+To view dynamic ports:
+netsh int ipv4 show dynamicport tcp
+
+To convert certificate from binary to Base64:
+certutil -encode filename.cer newfilename.cer 
+
+To convert certificate from Base64 to binary:
+certutil -decode filename.cer newfilename.cer
+
+To view TCP settings:
+netsh interface tcp show global
+
+To test WMI connectivity between servers:
+type wbemtest at a command prompt
+
+The Windows Management Instrumentation Tester window will open. Click 'Connect'.
+ 
+Edit the following fields:
+Change root\default to \\[servername]\root\cimv2
+[servername] equals the server you are trying to connect to
+Enter the 'USER' and 'PASSWORD' credentials for the server.
+Click on 'Connect'.
+ 
+The connection will either pass or fail. If the connection has failed then additional troubleshooting will need to be performed.
+
+C:\Windows\Microsoft.NET\Framework\v2.0.50727\Aspnet_regiis -pdf connectionStrings c:\inetpub\wwwroot\OPE
+C:\Windows\Microsoft.NET\Framework\v2.0.50727\Aspnet_regiis -pef connectionStrings c:\Inetpub\wwwroot\OPE
