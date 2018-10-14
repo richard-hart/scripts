@@ -8,7 +8,7 @@ https://outlook.office.com/mapi/emsmdb/?showdebug=yes
 
 Log Files
 -------------
-You can use PowerShell to search for string matches in the log files. In this example Get-Childitem returns the list of log files in the current directory, and I’m piping those into Select-String to look for “microsoft.com”:
+You can use PowerShell to search for string matches in the log files. In this example Get-Childitem returns the list of log files in the current directory, and Iâ€™m piping those into Select-String to look for â€œmicrosoft.comâ€:
 
 Get-ChildItem | Select-String -Pattern "microsoft.com"
 
@@ -44,13 +44,13 @@ When run from the folder containing the message tracking logs (in this case C:\P
 "C:\Program Files (x86)\Log Parser 2.2\logparser.exe" "SELECT client-ip as IP,REVERSEDNS(client-ip) as Name,Count(*) as Hits from *.log WHERE (event-id='RECEIVE') GROUP BY IP ORDER BY Hits DESC" -i:CSV -nSkipLines:4 -rtp:-1
 
 
-Get-TransportServer | Get-MessageTrackingLog -ResultSize Unlimited -Start “10/14/2017” -End “11/14/2017” -Sender “test@test.com” -EventID RECEIVE | ? {$_.Source -eq “STOREDRIVER”} | ForEach { $intSent++ }
-Get-TransportServer | Get-MessageTrackingLog -ResultSize Unlimited -Start “10/14/2017” -End “11/14/2017” -Recipients “test@test.com” -EventID DELIVER | ForEach { $intRec++ }
+Get-TransportServer | Get-MessageTrackingLog -ResultSize Unlimited -Start â€œ10/14/2017â€ -End â€œ11/14/2017â€ -Sender â€œtest@test.comâ€ -EventID RECEIVE | ? {$_.Source -eq â€œSTOREDRIVERâ€} | ForEach { $intSent++ }
+Get-TransportServer | Get-MessageTrackingLog -ResultSize Unlimited -Start â€œ10/14/2017â€ -End â€œ11/14/2017â€ -Recipients â€œtest@test.comâ€ -EventID DELIVER | ForEach { $intRec++ }
 
-Write-Host “E-mails sent:    “, $intSent
-Write-Host “E-mails received:”, $intRec
+Write-Host â€œE-mails sent:    â€œ, $intSent
+Write-Host â€œE-mails received:â€, $intRec
 
-Get-Exchangeserver | where {$_.isHubTransportServer -eq $true -or $_.isMailboxServer -eq $true} | Get-Messagetrackinglog -ResultSize Unlimited -Recipients “test@test.com” -Start "10/14/2017" -End "11/14/2017" | Select-Object Timestamp,Clienthostname,eventid,source,sender,@{Name="Recipients";Expression={$_.recipients}},Recipientcount,serverhostname,SourceContext | Export-Csv c:\temp\Messageinfo.csv
+Get-Exchangeserver | where {$_.isHubTransportServer -eq $true -or $_.isMailboxServer -eq $true} | Get-Messagetrackinglog -ResultSize Unlimited -Recipients â€œtest@test.comâ€ -Start "10/14/2017" -End "11/14/2017" | Select-Object Timestamp,Clienthostname,eventid,source,sender,@{Name="Recipients";Expression={$_.recipients}},Recipientcount,serverhostname,SourceContext | Export-Csv c:\temp\Messageinfo.csv
 
 Output message trace over 5000 lines:
 
@@ -62,7 +62,7 @@ Import-PSSession $Session
 $index = 1
 do
 {
-$a = Get-MessageTrace -SenderAddress test@test.com -StartDate “03/09/2018 12:00” -EndDate “03/09/2018 15:00” -PageSize 5000 -Page $index
+$a = Get-MessageTrace -SenderAddress test@test.com -StartDate â€œ03/09/2018 12:00â€ -EndDate â€œ03/09/2018 15:00â€ -PageSize 5000 -Page $index
 $a | export-csv c:\temp\test.csv -Append
 $index ++
 }
@@ -78,9 +78,9 @@ Get-SendConnector | select name,*protocollogginglevel | ft -auto
 Set-ReceiveConnector -Identity "Default internal receive connector" -MaxInboundConnectionPerSource 2000
 
 Export receive connector remote IPs:
-Get-ReceiveConnector “Inbound from Office 365” | select -ExpandProperty remoteipranges|export-csv d:\ICT\RelayIPs.csv 
-Get-ReceiveConnector “Anonymous Relay Permitted” | select -ExpandProperty remoteipranges|export-csv d:\ICT\AnonymousRelay.csv 
-Get-ReceiveConnector “Relay from Apps” | select -ExpandProperty remoteipranges|export-csv d:\ICT\AppsRelay.csv
+Get-ReceiveConnector â€œInbound from Office 365â€ | select -ExpandProperty remoteipranges|export-csv d:\ICT\RelayIPs.csv 
+Get-ReceiveConnector â€œAnonymous Relay Permittedâ€ | select -ExpandProperty remoteipranges|export-csv d:\ICT\AnonymousRelay.csv 
+Get-ReceiveConnector â€œRelay from Appsâ€ | select -ExpandProperty remoteipranges|export-csv d:\ICT\AppsRelay.csv
 
 Configure receive connector to send anonymous relay:
 Get-ReceiveConnector "Anonymous Relay" | Add-ADPermission -User "NT AUTHORITY\ANONYMOUS LOGON" -ExtendedRights "Ms-Exch-SMTP-Accept-Any-Recipient"
@@ -217,16 +217,16 @@ Get-Mailbox <SMTP> | fl displayname, GrantSendOnBehalfTo
 
 for exporting send as permission:
 
-Get-Mailbox <SMTP> -ResultSize unlimited | Get-ADPermission | Where {$_.ExtendedRights -like “Send-As” -and $_.User -notlike “NT AUTHORITY\SELF” -and $_.Deny -eq $false} | Export-Csv -path C:\TEMP\sendas.csv –NoTypeInformation
+Get-Mailbox <SMTP> -ResultSize unlimited | Get-ADPermission | Where {$_.ExtendedRights -like â€œSend-Asâ€ -and $_.User -notlike â€œNT AUTHORITY\SELFâ€ -and $_.Deny -eq $false} | Export-Csv -path C:\TEMP\sendas.csv â€“NoTypeInformation
 
 Get-Mailbox -Identity smtp@domain.com | ft GrantSendOnBehalfTo
 
 Check protocol settings to verify that the user's account is configured to use the correct protocol:
 Get-Mailbox user@domain.com | fl ProtocolSettings
 
-Note - The ProtocolSettings attribute should contain "HTTP??§§§§§§, OWA?" to allow access to OWA. 
+Note - The ProtocolSettings attribute should contain "HTTP??Â§Â§Â§Â§Â§Â§, OWA?" to allow access to OWA. 
 If the ProtocolSettings attribute starts with a zero (0), the protocol is disabled.
-If the ProtocolSettings attribute does not contain the "HTTP??§§§§§§, OWA?" text, reset the protocol settings as follows:
+If the ProtocolSettings attribute does not contain the "HTTP??Â§Â§Â§Â§Â§Â§, OWA?" text, reset the protocol settings as follows:
 
 Set-CASmailbox user@domain.com -owaenabled $false
 Set-CASmailbox user@domain.com -owaenabled $True
@@ -341,10 +341,10 @@ Set-Clutter -Identity user@domain.com -Enable $false
 Get-Mailbox | Set-Clutter -Enable $false
 
 Turn off Clutter for single user:
-Get-Mailbox –identity someone@somewhere.com | Set-Clutter -enable $false
+Get-Mailbox â€“identity someone@somewhere.com | Set-Clutter -enable $false
 
 Check Clutter status for single user:
-get-clutter –Identity someone@somewhere.com
+get-clutter â€“Identity someone@somewhere.com
 
 
 Focused Inbox
