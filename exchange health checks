@@ -1,0 +1,26 @@
+Diagnostics & health checks
+
+
+First, get a server health summary:
+Get-HealthReport -identity <ServerName>
+
+
+If any HealthSet returns unhealthy, perform the following:
+
+Get-ServerHealth –Identity <ServerName> –HealthSet <HealthSetName>
+
+This results in a verbose report showing which monitors are unhealthy:
+
+Get-ServerHealth –Identity <ServerName> –HealthSet MailboxTransport
+Invoke-MonitoringProbe ActiveSync.Protocol\ActiveSyncDeepTestProbe -Server <ServerName> | Format-List
+
+I then recycled the ActiveSync application pool (MSExchangeSyncAppPool) in IIS Manager and I also restarted the Health Manager service
+
+To quickly check the state of Mailbox Server Role, CAS Role, UM Server Role and Hub Transport Server Role, type the following:
+
+Test-ServiceHealth -identity <ServerName>
+To test Edge Sync:
+Test-EdgeSynchronization
+
+To test mail flow:
+Test-Mailflow
