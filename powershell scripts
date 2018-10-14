@@ -22,7 +22,7 @@ $session = New-PSSession -ComputerName MyServer
 Copy-Item -Path "C:\myfile.txt" -Target "C:\SomeServerFolder" -ToSession $session
 
 
-GPRESULT /H c:\temp\reort.html
+GPRESULT /H c:\temp\report.html
 
 Skype for Business PowerShell:
 
