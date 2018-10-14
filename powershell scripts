@@ -329,7 +329,7 @@ Get-WmiObject -Class win32_logicaldisk -ComputerName server1 | FT systemname,dev
 
 
 Display information about AD User account:
-get-aduser -f {SAMAccountName -eq 'cxser'}
+get-aduser -f {SAMAccountName -eq 'John'}
 get-aduser -f {GivenName -eq 'john'}
 
 
