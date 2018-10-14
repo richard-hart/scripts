@@ -28,7 +28,7 @@ Skype for Business PowerShell:
 
 $credential = Get-Credential
 $proxysettings = New-PSSessionOption -ProxyAccessType IEConfig
-$sfboSession = New-CsOnlineSession -Credential $credential -SessionOption $proxysettings –overrideadmindomain "test.onmicrosoft.com" -verbose
+$sfboSession = New-CsOnlineSession -Credential $credential -SessionOption $proxysettings â€“overrideadmindomain "test.onmicrosoft.com" -verbose
 Import-PSSession $sfboSession
 
 
@@ -71,7 +71,7 @@ Get-AdfsCertificate `
 
  
 Refresh federation trust metadata:
-Get-FederationTrust | Set-FederationTrust –RefreshMetadata
+Get-FederationTrust | Set-FederationTrust â€“RefreshMetadata
 
 Test federation trust:
 Test-FederationTrust -UserIdentity testtrust@contoso.com
@@ -87,7 +87,7 @@ Get-Recipient -Filter {EmailAddresses -like "*contoso.com"}
 Get-MailboxServer
 
 
-Update-MSOLFederatedDomain –DomainName: contoso.com
+Update-MSOLFederatedDomain â€“DomainName: contoso.com
 
 
 Hide Office 365 group from GAL:
@@ -156,7 +156,7 @@ Messages will now be delivered, when they've all gone through, delete the origin
 
 
 Export receive connector remote IPs:
-Get-ReceiveConnector “Inbound from Office 365” | select -ExpandProperty remoteipranges|export-csv c:\ICT\RelayIPs.csv 
+Get-ReceiveConnector â€œInbound from Office 365â€ | select -ExpandProperty remoteipranges|export-csv c:\ICT\RelayIPs.csv 
 
 
 Test Outlook Web Services:
@@ -247,9 +247,9 @@ Get-mailboxdatabase -identity DAGname* | set-mailboxdatabase -CircularloggingEna
 
 Search for and restore deleted AD object:
 
-Get-ADObject –Filter {displayName –eq "Humpty Dumpty"} –IncludeDeletedObjects | Restore-ADObject
-Get-ADObject -Filter { SAMAccountName –eq “JGrey” } -IncludeDeletedObjects
-Get-ADObject -Filter { DisplayName –like “*Grey*” } -IncludeDeletedObjects
+Get-ADObject â€“Filter {displayName â€“eq "Humpty Dumpty"} â€“IncludeDeletedObjects | Restore-ADObject
+Get-ADObject -Filter { SAMAccountName â€“eq â€œJGreyâ€ } -IncludeDeletedObjects
+Get-ADObject -Filter { DisplayName â€“like â€œ*Grey*â€ } -IncludeDeletedObjects
 
 
 To convert email addresses to SAM account names:
@@ -334,7 +334,7 @@ get-aduser -f {GivenName -eq 'john'}
 
 
 Export csv file of disabled user accounts:
-Get-ADUser -Filter ‘enabled -eq $false’ | Export-CSV c:\temp\disabledusers.csv
+Get-ADUser -Filter â€˜enabled -eq $falseâ€™ | Export-CSV c:\temp\disabledusers.csv
 
 
 
@@ -404,9 +404,9 @@ Get-Mailbox -Identity smtp@domain.com | ft GrantSendOnBehalfTo
 Check protocol settings to verify that the user's account is configured to use the correct protocol:
 Get-Mailbox user@domain.com | fl ProtocolSettings
 
-Note - The ProtocolSettings attribute should contain "HTTP??§§§§§§, OWA?" to allow access to OWA. 
+Note - The ProtocolSettings attribute should contain "HTTP??Â§Â§Â§Â§Â§Â§, OWA?" to allow access to OWA. 
 If the ProtocolSettings attribute starts with a zero (0), the protocol is disabled.
-If the ProtocolSettings attribute does not contain the "HTTP??§§§§§§, OWA?" text, reset the protocol settings as follows:
+If the ProtocolSettings attribute does not contain the "HTTP??Â§Â§Â§Â§Â§Â§, OWA?" text, reset the protocol settings as follows:
 
 Set-CASmailbox user@domain.com -owaenabled $false
 Set-CASmailbox user@domain.com -owaenabled $True
@@ -418,7 +418,7 @@ Set-Mailbox -Identity "John Doe" -RetainDeletedItemsFor 30
 This example increases the deleted item retention period for all user mailboxes in the organization:
 Get-Mailbox -ResultSize unlimited -Filter {(RecipientTypeDetails -eq 'UserMailbox')} | Set-Mailbox -RetainDeletedItemsFor 30
 
-To verify that you¡¯ve changed the value for how long deleted items are to be retained, run one of the following commands:
+To verify that youÂ¡Â¯ve changed the value for how long deleted items are to be retained, run one of the following commands:
 Get-Mailbox <Name> | FL RetainDeletedItemsFor
 Or
 Get-Mailbox -ResultSize unlimited -Filter {(RecipientTypeDetails -eq 'UserMailbox')} | FL Name,RetainDeletedItemsFor
@@ -515,7 +515,7 @@ To recover a deleted object, use the Get-ADObject cmdlet from the Active Directo
 Get-ADObject can be used to find objects, which can then be recovered using the Restore-ADObject cmdlet. 
 For example, the following syntax recovers a deleted user account for user Humpty Dumpty:
 
-Get-ADObject ¨Filter {displayName ¨eq "Humpty Dumpty"} ¨IncludeDeletedObjects | Restore-ADObject
+Get-ADObject Â¨Filter {displayName Â¨eq "Humpty Dumpty"} Â¨IncludeDeletedObjects | Restore-ADObject
 
 
 
