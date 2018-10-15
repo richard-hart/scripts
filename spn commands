@@ -1,0 +1,111 @@
+SETSPN.exe
+ 
+Read, modify, or delete the Service Principal Names (SPN) for an Active Directory service account.
+ 
+Syntax
+      SETSPN [modifiers switch] [accountname]
+ 
+Key
+   accountname  The name or domain\name of the target computer or user account
+ 
+   Edit Mode Switches:
+   -R = reset HOST ServicePrincipalName
+        Usage:  setspn -R accountname
+ 
+   -A = add arbitrary SPN 
+        Usage:  setspn -A SPN accountname
+ 
+   -S = add arbitrary SPN after verifying no duplicates exist
+        Usage:  setspn -S SPN accountname
+ 
+   -D = delete arbitrary SPN
+        Usage:  setspn -D SPN accountname
+ 
+   -L = list SPNs registered to target account
+        Usage:  setspn [-L] accountname  
+ 
+  Edit Mode Modifiers:
+   -C = accountname is a computer account
+   -U = accountname is a user account
+  
+        Note: -C and -U are exclusive.  If neither is specified, setspn
+        will interpret accountname as a computer name if such a computer
+        exists, and a user name if it does not.
+ 
+  Query Mode Switches:
+   -Q = query for existence of SPN
+        Usage:  setspn -Q SPN
+ 
+   -X = search for duplicate SPNs
+        Usage:  setspn -X
+searching for duplicates, especially forestwide, can take a long period of time and a large amount of memory.
+-Q will execute on each target domain/forest.
+-X will return duplicates that exist across all targets. SPNs are not required to be unique across forests, but duplicates can cause authentication issues when authenticating cross-forest.
+  Query Mode Modifiers:
+   -P = suppress progress to the console, use when redirecting output to a file or
+        in an unattended script. There will be no output until the command is complete.
+ 
+   -F = perform queries at the forest, rather than domain level
+ 
+   -T = perform query on the specified domain or forest (when -F is also used)
+        Usage:  setspn -T domain (switches and other parameters)
+        "" or * can be used to indicate the current domain or forest.
+Note: these modifiers can be used with the -S switch in order to specify where the check for duplicates should be performed before adding the SPN. Note: -T can be specified multiple times.
+ 
+SPNs are set up automatically when a computer joins a domain (and when some services are installed). Some services and applications (e.g. SharePoint) require manual modification of a service account's SPN information to authenticate correctly.
+ 
+If the computer name or Alias is changed, the SPNs for installed services must be changed to match.
+ 
+Use Setspn -S in preference to Setspn -A, the -S will verify that there are no duplicate SPNs.
+Alternatively verify with a manual listing that there are no duplicates by running Setspn -L
+ 
+setspn must be run from an elevated command prompt.
+ 
+Administrators with only delegated authority (non domain administrators) will require the Validated write to service principle name permission to configure service principal names (SPNs).
+ 
+Duplicate SPNs will cause Kerberos to fail and fall back to NTLM, run setspn -x periodically to check for this.
+ 
+SPN Format
+When you manipulate SPNs with setspn, the SPN must be entered in the correct format. The format of an SPN is serviceclass/host:port/servicename, in which each item represents a name or value.
+Unless the service name and port are non standard, you do not have to enter them.
+ 
+For example, the default SPNs for a server named Server64 that is providing remote desktop (RDP) services (TERMSRV) over the default port (TCP 3389) register the following two SPNs in its own Active Directory computer object:
+TERMSRV/Server64
+TERMSRV/Server64.ss64.com
+ 
+Examples
+ 
+View a list of the SPNs that the computer server64 has registered with Active Directory from a command prompt:
+ 
+setspn –l server64
+ 
+View a list of the SPNs that the local computer has registered with Active Directory from a command prompt:
+ 
+setspn –l hostname
+ 
+Reset the SPNs for the computer server64 back to the default:
+ 
+setspn -r server64
+ 
+Add an SPN for LDAP to an AD domain controller with the host name dc1.ss64.com:
+ 
+setspn -s ldap/dc1.ss64.com dc1
+ 
+Delete the SPN for LDAP from an AD domain controller with the host name dc1.ss64.com:
+ 
+setspn -d ldap/dc1.ss64.com dc1
+ 
+Create an alias name for a server:
+ 
+Create a CNAME record (not a normal Host(A) record.) in DNS:
+ 
+Set the DisableStrictNameChecking key in the registry:
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\LanmanServer\Parameters
+DisableStrictNameChecking Data type: REG_DWORD
+Set Value: 1
+ 
+On the server create SPN's for the flat name and the fully qualified name of the cname alias:
+setspn -S host/your_ALIAS_name ServerName
+setspn -S host/your_ALIAS_name.domain.com ServerName
+ 
+Then reboot the Host.
