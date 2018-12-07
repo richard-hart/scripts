@@ -1,5 +1,0 @@
-
-Revoke-AzureADUserAllRefreshToken
-
-
-get-azureaduser -searchstring A.User@contoso.com | Revoke-AzureADUserAllRefreshToken
