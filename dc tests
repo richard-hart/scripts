@@ -14,3 +14,5 @@ dcdiag /test:dns /v /s:<DCName> /DnsDynamicUpdate
 To register DNS resource records manually:
 net stop netlogon && net start netlogon
 dcdiag /test:dns /v /s:<DCName>
+
+dcdiag /test:dns /v /e /DnsDynamicUpdate > c:\temp\dynamicupdate.txt
