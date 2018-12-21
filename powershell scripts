@@ -252,7 +252,7 @@ Get-ADObject -Filter { SAMAccountName –eq “JGrey” } -IncludeDeletedObjects
 Get-ADObject -Filter { DisplayName –like “*Grey*” } -IncludeDeletedObjects
 
 
-To convert email addresses to SAM account names:
+To convert email addresses to SAM account names (needs Quest ActiveRoles Management Shell installing):
 
 $Users = get-content c:\temp\users.txt
 $Users | foreach {
