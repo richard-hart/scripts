@@ -1,6 +1,0 @@
-Skype for Business PowerShell:
-
-$credential = Get-Credential
-$proxysettings = New-PSSessionOption -ProxyAccessType IEConfig
-$sfboSession = New-CsOnlineSession -Credential $credential –overrideadmindomain "isgplc.onmicrosoft.com" -verbose
-Import-PSSession $sfboSession
