@@ -1,0 +1,5 @@
+Skype for Business PowerShell:
+
+$credential = Get-Credential
+$sfboSession = New-CsOnlineSession -Credential $credential –overrideadmindomain "yourdomain.onmicrosoft.com" -verbose
+Import-PSSession $sfboSession
