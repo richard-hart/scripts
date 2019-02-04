@@ -1,0 +1,24 @@
+#list office 365 global admins
+
+Import-Module MsOnline
+Connect-MsolService
+
+
+#list Office 365 tenant roles–groups:
+
+Get-MsolRole
+
+#The results of the above command displays the objectID, name and description of each role.  
+#You will notice from the display of roles that “Global Admins” is not present.  
+#However, “Global Admins” is represented by “Company Administrator” via PowerShell
+
+#NOTE: The ObjectID for “Company Administrator” is unique to every Office 365 tenant.
+
+#Enter the following command with your ObjectID to get a list of users assigned as global admins:
+
+Get-MsolRoleMember -RoleObjectId "ObjectID"
+
+
+#The results will provide a comprehensive list of those that have access to make changes to and administer your Office 365 tenant, and this list of users will also receive email notifications #from the Microsoft Office 365 Team.  
+
+#Check often and make modifications or corrections as needed to maintain the security of your tenant.
