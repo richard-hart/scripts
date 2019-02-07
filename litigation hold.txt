@@ -1,0 +1,13 @@
+#Litigation hold scripts
+#R Hart 07/02/19
+
+
+#bulk import users and enable litigation hold
+$Users=Import-Csv C:\Temp\lithold.csv
+$Users | ForEach-Object {Set-Mailbox -Identity $_.Address -LitigationHoldEnabled $true}
+
+#view litigation hold status for one user
+Get-Mailbox -identity homer.simpson@springfield.com | fl Identity, LitigationHold*
+
+#list all mailboxes where litigation hold is disabled and display license, recipient type details and display name
+Get-mailbox -resultsize unlimited | where-object {$_.litigationholdenabled -eq $false} | Format-Table DisplayName, SKUAssigned, RecipientTypeDetails, LitigationHoldEnabled -Auto
