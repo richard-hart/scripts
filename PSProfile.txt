@@ -1,0 +1,17 @@
+Creating a PowerShell Profile
+
+The first thing we need to do is check if you already have a profile:
+
+Test-Path $Profile
+
+As you can see we don’t have a profile file yet, so we will need to create one, you can easily do that with the New-Item cmdlet:
+
+New-Item –Path $Profile –Type File –Force
+
+Note: Using the force parameter will cause a profile to be created even if you already had one. This means your old profile will be overwritten.
+
+
+You can edit your profile using notepad, which is easily started using PowerShell:
+
+notepad $Profile
+
