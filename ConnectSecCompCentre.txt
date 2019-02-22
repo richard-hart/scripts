@@ -1,0 +1,3 @@
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.compliance.protection.outlook.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic –AllowRedirectio
+
+Import-PSSession $Session
