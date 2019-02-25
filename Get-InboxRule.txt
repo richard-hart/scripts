@@ -1,0 +1,7 @@
+# this cmdlet is primarily used to preview all rules set for a specific mailbox:
+
+Get-InboxRule -Mailbox bart@springfield.com | fl
+Remove-InboxRule -Mailbox bart@springfield.com -Identity "123456789"
+
+#alternative method:
+Remove-InboxRule -Identity "domain.com/OU/Users/Username\123456789"
