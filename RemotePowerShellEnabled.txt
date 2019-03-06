@@ -1,0 +1,27 @@
+# Manage access to Exchange Online Remote PowerShell
+# Author: Richard Hart
+
+# Let's get a list of users
+Get-User -ResultSize Unlimited | Format-Table Name,DisplayName,RemotePowerShellEnabled
+
+# Let's get a list of users where RemotePowerShellEnabled is $false
+Get-User -ResultSize unlimited -Filter {RemotePowerShellEnabled -eq $false}
+
+# Let's get the value of RemotePowerShellEnabled for a single user
+Get-User <User Identity> | Format-List RemotePowerShellEnabled
+
+# Let's disable Remote PowerShell for a single user
+Set-User <User Identity> -RemotePowerShellEnabled $false
+
+# Let's enable Remote PowerShell for a single user
+Set-User <User Identity> -RemotePowerShellEnabled $true
+
+# Let's filter the results of Get-Mailbox and disable Remote PowerShell
+Get-Mailbox | Get-User -ResultSize unlimited -Filter <Filter> | Set-User -RemotePowerShellEnabled $false
+
+# Let's filter the results of Get-User where RecipientType -eq 'UserMailbox' and Department -eq 'Accounting' and disable Remote PowerShell
+Get-User -ResultSize unlimited -Filter {(RecipientType -eq 'UserMailbox') -and (Department -eq 'Accounting')} | Set-User -RemotePowerShellEnabled $false
+
+# Let's get the content of a text file and disable Remote PowerShell
+Get-Content "C:AdminDisableRemotePSList.txt" | Set-User -RemotePowerShellEnabled $false
+
