@@ -1,0 +1,14 @@
+# Remove orphaned Azure AD account
+# Author: Richard Hart
+
+
+# If sync is working correctly but the Active Directory object deletion is still not propagated to Azure AD, you can manually remove the orphaned object by using one of the following Azure Active Directory Module for Windows PowerShell cmdlets:
+
+Remove-MsolContact
+Remove-MsolGroup
+Remove-MsolUser
+
+# For example, to manually remove orphaned user ID john.smith@contoso.com that was originally created by using directory synchronization, you would run the following cmdlet:
+
+connect-msolservice
+Remove-MsolUser –UserPrincipalName John.Smith@Contoso.com 
