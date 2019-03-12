@@ -1,0 +1,5 @@
+# This is a script to bulk move and disable user accounts
+# Author: R Hart
+# Ensure that the CSV file has a column name of 'User'
+
+Import-csv "C:\temp\leavers.csv" | foreach-object {get-aduser ($_.User) -Server "DOMAINCONTROLLER:389" | Move-ADObject -TargetPath "OU=Leavers,DC=acme,DC=com" -PassThru | Disable-ADAccount}
