@@ -1,0 +1,7 @@
+# List all disabled users which are still showing up in the address lists
+# Author: R Hart
+
+Get-ADUser `
+ -Filter {(enabled -eq "false") -and (msExchHideFromAddressLists -notlike "*")} `
+ -SearchBase "DC=acme,DC=com"`
+ -Properties enabled,msExchHideFromAddressLists
