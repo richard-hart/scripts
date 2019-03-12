@@ -1,0 +1,8 @@
+# Import mailbox users from CSV and hide from GAL
+# Author: R Hart
+# Ensure that the CSV file column header name is 'UserPrincipalName'
+
+Import-Csv 'C:\Temp\Mailboxes.csv' | ForEach-Object {
+$upn = $_."UserPrincipalName"
+Set-Mailbox -Identity $upn -HiddenFromAddressListsEnabled $true
+}
