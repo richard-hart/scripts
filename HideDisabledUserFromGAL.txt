@@ -1,0 +1,4 @@
+Get-ADUser `
+-Filter {(enabled -eq "false") -and (msExchHideFromAddressLists -notlike "*")} `
+-Server "DOMAINCONTROLLER:389" -SearchBase "DC=acme,DC=com"| `
+Where-Object { $_.DistinguishedName -notlike '*OU=Leavers,*' } | Export-csv -notype "C:\Temp\leavers3.csv"
