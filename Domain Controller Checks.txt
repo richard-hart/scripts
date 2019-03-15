@@ -58,7 +58,7 @@ Get-ADReplicationPartnerMetadata -Target "acme.com" -Scope Domain
 Get-ADReplicationPartnerMetadata -Target "acme.com" -Scope Forest
 
 # Get all replication failures for a site, forest, domain or domain controller
-Get-ADReplicationFailure -Target REBEL-SRV01.rebeladmin.com
+Get-ADReplicationFailure -Target SRV01.acme.com
 
 # Get all replication failures for a domain:
 Get-ADReplicationFailure -Target "acme.com" -Scope Domain
