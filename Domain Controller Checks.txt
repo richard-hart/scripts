@@ -1,0 +1,90 @@
+# Some useful diagnostic tools to run on Domain Controllers
+# Remember to run the commands in an elevated prompt
+# Author: R Hart
+
+
+======DCDiag Commands======
+
+# Perform DCDiag verbose test and write to text file:
+Dcdiag /v /f:c:\temp\Dcdiag_verbose_output.txt
+
+# Perform DCDiag verbose DNS test and write to text file:
+Dcdiag /v /test:dns /f:c:\temp\DCDiag_DNS_output.txt
+
+# Perform DCDiag verbose DNS test and specify Domain Controller:
+dcdiag /test:dns /v /s:<DCName>
+
+# Perform DCDiag verbose Topology test and write to text file:
+Dcdiag /v /test:topology /f:c:\temp\DCDiag_Topology_output.txt
+
+# Perform DCDiag DNS Record Registration test:
+Dcdiag /test:dns /DnsRecordRegistration
+
+# Perform DCDiag DNS Dynamic Update test:
+Dcdiag /test:dns /v /s:<DCName> /DnsDynamicUpdate
+
+# Perform DCDiag DNS Dynamic Update test and write to text file:
+dcdiag /test:dns /v /e /DnsDynamicUpdate > c:\temp\dynamicupdate.txt
+
+# Register DNS resource records manually:
+net stop netlogon && net start netlogon
+
+
+
+=======Replication=======
+
+# Force KCC (Knowledge Consistency Checker) to run on a domain controller:
+repadmin /kcc
+
+# Force replication sync to all DC's:
+repadmin /syncall /AdeP
+
+# Get replication status and write to text file:
+Repadmin /showrepl * > c:\temp\repadmin_showrepl.txt
+
+# Get replication summary and write to text file:
+Repadmin /replsummary * > c:\temp\repadmin_replsummary.txt
+
+# Get replication summary:
+repadmin /replsum
+
+# Get inbound replication partners:
+Get-ADReplicationPartnerMetadata -Target SRV01.acme.com
+
+# Get inbound replication partners for given domain:
+Get-ADReplicationPartnerMetadata -Target "acme.com" -Scope Domain
+
+# Get all the inbound replication partners for given forest:
+Get-ADReplicationPartnerMetadata -Target "acme.com" -Scope Forest
+
+# Get all replication failures for a site, forest, domain or domain controller
+Get-ADReplicationFailure -Target REBEL-SRV01.rebeladmin.com
+
+# Get all replication failures for a domain:
+Get-ADReplicationFailure -Target "acme.com" -Scope Domain
+
+# Get all replication failures for a forest:
+Get-ADReplicationFailure -Target "acme.com" -Scope Forest
+
+# Get all replication failures for a site:
+Get-ADReplicationFailure -Target "acme.com" -Scope Site
+
+# Get AD replication site links in the forest:
+Get-ADReplicationSiteLink -Filter *
+
+
+
+=======AD Sites======
+
+# Get the site cost and replication schedule in site links:
+Get-ADReplicationSiteLink -Filter {SitesIncluded -eq "SiteName"} | Format-Table Name,Cost,ReplicationFrequencyInMinutes -A
+
+# Get Site link bridge information: 
+Get-ADReplicationSiteLinkBridge -Filter *
+
+# Get Active Directory site IP address subnets:
+Get-ADReplicationSubnet -Filter * | Format-Table Name,Site -A
+
+# Get all the preferred bridgehead servers in a domain:
+$BHservers = ([adsi]"LDAP://CN=IP,CN=Inter-Site Transports,CN=Sites,CN=Configuration,DC=acme,DC=com").bridgeheadServerListBL
+$BHservers | Out-GridView
