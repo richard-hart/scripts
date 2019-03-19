@@ -1,0 +1,20 @@
+# Let's get an Office 365 global admin credential
+$O365Cred = Get-Credential
+
+# Let's connect to the MSOL service
+Connect-MsolService -Credential $O365Cred
+
+# Let's get a list of SKU's assigned to the tenant
+Get-MsolAccountSku
+
+# Let's display a list of SKU's to select one from
+$LicenseSKU = Get-MsolAccountSku | Out-GridView -Title 'Select a license plan to assign to users' -OutputMode Single | Select-Object -ExpandProperty AccountSkuId
+
+# Let's display a list of un-licensed users to select from			  
+$Users = Get-MsolUser -All -UnlicensedUsersOnly | Out-GridView -Title 'Select users to assign license plan to' -OutputMode Multiple
+
+# Let's set the usage location to GB
+$Users | Set-MsolUser -UsageLocation GB
+
+# Let's add the selected SKU to the user/s
+$Users | Set-MsolUserLicense -AddLicenses $LicenseSKU
