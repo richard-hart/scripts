@@ -1,0 +1,17 @@
+# This script removes the msExchMailboxGuid attribute from a user account
+# Author: R Hart
+
+# Open an elevated PowerShell and establish a PSSession to the CAS server
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://exchangeserver.acme.com/powershell/" -Authentication Kerberos
+Import-PSSession $Session
+
+# You can use the SID or UPN to lookup the user
+
+$ADaccount = get-user bart.simpson@acme.com
+$FullDistinguishName = "LDAP://" + $ADaccount.distinguishedName 
+ 
+$AccountEntry = New-Object DirectoryServices.DirectoryEntry $FullDistinguishName 
+$AccountEntry.PutEx(1, "msExchMailboxGuid", $null) 
+
+# write to the AD account
+$AccountEntry.SetInfo()
