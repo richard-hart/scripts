@@ -1,0 +1,3 @@
+Import-Module activedirectory
+New-PSDrive -Name Test -PSProvider ActiveDirectory -Root "DC=test,DC=acme,DC=com" -Server servername.test.acme.com:389 -Credential acme\acme-admin
+Set-Location Test:
