@@ -1,0 +1,13 @@
+﻿# Create Remote PowerShell session to EXCHANGESERVER to load up Exchange snapin.
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://exchangeserver.acme.com/PowerShell/ -Authentication Kerberos
+Import-PSSession $Session 
+
+# Set Exchange Management Shell to view entire AD Forest. Required to manage accounts in different domains rather than just the default root domain.
+Set-ADServerSettings -ViewEntireForest $True
+
+# Ask for the name of the existing AD user and store the answer in a variable called $UserName
+$UserName = Read-Host "Please enter the user name in the format firstname.lastname? For Example bart.simpson"
+
+Enable-RemoteMailbox  "$UserName@acme.com" -RemoteRoutingAddress "$UserName@ACME.onmicrosoft.com"
+
+Remove-PSSession $Session
