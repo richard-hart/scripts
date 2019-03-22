@@ -1,0 +1,16 @@
+﻿# Bulk enable remote mailbox
+# Author: R Hart
+# Create a one column CSV file containing the samAccountNames
+
+# Create Remote PowerShell session to EXCHANGESERVER to load up Exchange snapin
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://exchangeserver.acme.com/PowerShell/ -Authentication Kerberos
+Import-PSSession $Session 
+
+# Set Exchange Management Shell to view entire AD Forest. Required to manage accounts in different domains rather than just the default root domain.
+Set-ADServerSettings -ViewEntireForest $True
+
+# Read the contents of users.csv file and step through, enabling the remote mailbox for each user and setting the remote routing address
+foreach ($i in get-content C:\Temp\users.csv) {Enable-RemoteMailbox -Identity $i@acme.com -RemoteRoutingAddress $i@ACME.onmicrosoft.com}
+
+# Remove the PSSession
+Remove-PSSession $Session
