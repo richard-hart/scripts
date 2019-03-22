@@ -1,0 +1,19 @@
+# Bulk enable Exchange Online archiving
+# Create a one column CSV file with the header 'User' containing the aliases
+
+# Create Remote PowerShell session to EXCHANGESERVER to load up Exchange snapin
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://exchangeserver.acme.com/PowerShell/ -Authentication Kerberos
+Import-PSSession $Session 
+
+# Import the contents of the CSV file and store them in the variable called $list
+$list = Import-Csv "C:\Temp\enablearchive.csv"
+foreach($entry in $list) {
+$User = $entry.User
+Get-RemoteMailbox -id $User | Enable-RemoteMailbox -Archive
+}
+
+# Check if an Online archive has been enabled
+Get-Mailbox | Where-Object {$_.ArchiveStatus -eq "Active"}
+
+# Remove the PSSession
+Remove-PSSession $Session
