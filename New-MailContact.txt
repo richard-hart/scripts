@@ -1,0 +1,4 @@
+
+New-MailContact -Name "Bart Simpson" -ExternalEmailAddress "bart.simpson@simpsons.com" -DisplayName "Simpson, Bart" -OrganizationalUnit "OU=Contacts,DC=acme,DC=com"
+
+Enable-MailContact -Identity "Bart Simpson" -ExternalEmailAddress "bart.simpson@simpsons.com"
