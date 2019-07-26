@@ -1,0 +1,10 @@
+# List all user accounts created within the last 7 days
+
+$DateCutOff=(Get-Date).AddDays(-7)
+Get-ADUser -Filter * -Property whenCreated | Where {$_.whenCreated -gt $datecutoff} | FT Name, whenCreated -Autosize
+
+
+# Export a list of all user accounts created within the last 7 days to .csv file
+
+$DateCutOff=(Get-Date).AddDays(-7)
+Get-ADUser -Filter * -Property whenCreated | Where {$_.whenCreated -gt $datecutoff} | Export-Csv c:\temp\list.csv
