@@ -1,0 +1,21 @@
+## Get name, SAM and email address for a list of display names
+## Author: R Hart
+## Date: 14/11/19
+
+## Let's import the AD module
+Import-Module activedirectory
+
+## Let's initialise the displayname variable
+$displayname = @()
+
+## Let's get the content of a text file
+$names = get-content "C:\Temp\users.txt"
+
+## Let's loop through each entry
+foreach ($name in $names) {
+$displaynamedetails = Get-ADUser -filter { DisplayName -eq $name } -Properties mail -server "contoso.com"| Select name,samAccountName,mail
+$displayname += $displaynamedetails
+}
+
+## Let's export the results to a csv file
+$displayname | Export-Csv "C:\Temp\UserDetails.csv"
