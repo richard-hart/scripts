@@ -1,0 +1,11 @@
+# Report what mailboxes are enabled for MyAnalytics
+$Mbx = Get-Mailbox -RecipientTypeDetails UserMailbox -ResultSize Unlimited | Select DisplayName, UserPrincipalName
+$MyAnalyticsCount = 0
+ForEach ($M in $Mbx) {
+   $MyAnalytics = Get-UserAnalyticsConfig -Identity $M.UserPrincipalName | Select PrivacyMode
+   If ($MyAnalytics.PrivacyMode -eq "opt-in") { 
+       $MyAnalyticsCount++
+       Write-Host "MyAnalytics is enabled for" $M.DisplayName }
+   Else { Write-Host "MyAnalytics is not enabled for" $M.DisplayName}
+}
+Write-Host "MyAnalytics is enabled for" $MyAnalyticsCount "of" $Mbx.Count "mailboxes"
