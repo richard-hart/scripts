@@ -1,0 +1,4 @@
+$Mbx = Get-Mailbox -RecipientTypeDetails UserMailbox -ResultSize Unlimited -Filter {CustomAttribute7 -eq "NoMyAnalytics"} | Select DisplayName, UserPrincipalName
+ForEach ($M in $Mbx) {
+     Write-Host "Disabling MyAnalytics for" $M.DisplayName
+     Set-UserAnalyticsConfig -Identity $M.UserPrincipalName -PrivacyMode "opt-out" }
