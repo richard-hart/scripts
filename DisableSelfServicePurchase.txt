@@ -1,0 +1,27 @@
+# Disable the Self-service Purchase functionality for Power BI products
+
+Open an elevated PowerShell session and connect to Exchange Online
+
+# Connect to the MS Commerce endpoint:
+Connect-MSCommerce
+
+# Change the TLS version
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
+
+# Let's verify Self-service Purchase Status
+Get-MSCommercePolicy -PolicyId AllowSelfServicePurchase
+
+# Let's view the list of Power Products and its Self-service Purchase Status
+Get-MSCommerceProductPolicies -PolicyId AllowSelfServicePurchase
+
+# Let's disable self-service purchase for Power Apps: 
+Update-MSCommerceProductPolicy -PolicyId AllowSelfServicePurchase -ProductId CFQ7TTC0KP0P -Enabled $False
+
+# Let's disable self-service purchase for Power Automate:
+Update-MSCommerceProductPolicy -PolicyId AllowSelfServicePurchase -ProductId CFQ7TTC0KP0N -Enabled $False
+
+# Let's disable self-service purchase for Power BI:
+Update-MSCommerceProductPolicy -PolicyId AllowSelfServicePurchase -ProductId CFQ7TTC0L3PB -Enabled $False
+
+# Let's view the list of Power Products and its Self-service Purchase Status
+Get-MSCommerceProductPolicies -PolicyId AllowSelfServicePurchase
