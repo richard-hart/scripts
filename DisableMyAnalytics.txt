@@ -1,0 +1,34 @@
+# Disable MyAnalytics per user
+
+Open an elevated PowerShell session and connect to Exchange Online
+
+# Connect to the msolservice endpoint:
+Connect-msolservice
+
+# Let's see what the UserAnalyticsConfig setting is for a test user
+Get-UserAnalyticsConfig -Identity user@contoso.com
+
+# Let's set the UserAnalyticsConfig setting for a test user
+Set-UserAnalyticsConfig –Identity user@contoso.com -PrivacyMode Opt-out
+
+# Let's confirm the UserAnalyticsConfig setting for the test user
+Get-UserAnalyticsConfig -Identity user@contoso.com
+
+# Let's export a list of all MS Online user accounts to CSV file selecting just the UPN and UsageLocation
+Get-MsolUser -All | select UserPrincipalName,UsageLocation | Export-Csv c:\temp\AllUsers.csv
+
+# For each user in the CSV file, set the PrivacyMode to Opt-out
+
+$inFileName="c:\temp\AllUsers.csv"
+$outFileName="c:\temp\AllUsersLog.csv"
+$privacyMode = "Opt-out"
+
+$users=Import-Csv $inFileName
+ForEach ($user in $users)
+{
+$user.Userprincipalname
+$upn=$user.UserPrincipalName
+
+Set-UserAnalyticsConfig –Identity $upn -PrivacyMode $privacyMode
+Get-UserAnalyticsConfig –Identity $upn | Export-Csv $outFileName
+}
