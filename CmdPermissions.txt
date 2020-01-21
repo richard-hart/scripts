@@ -1,0 +1,3 @@
+
+$Perms = Get-ManagementRole -Cmdlet set-unifiedgroup
+$Perms | foreach {Get-ManagementRoleAssignment -Role $_.Name -Delegating $false | Format-Table -Auto Role,RoleAssigneeType,RoleAssigneeName}
