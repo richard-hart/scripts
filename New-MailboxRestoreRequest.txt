@@ -1,0 +1,9 @@
+
+Get-Mailbox -SoftDeletedMailbox | Select-Object Name,ExchangeGuid
+
+Get-Mailbox -Identity <UPN> | Format-List ExchangeGuid
+
+
+New-MailboxRestoreRequest -SourceMailbox <ExchangeGuid> -TargetMailbox <ExchangeGuid>
+
+Get-MailboxRestoreRequest
